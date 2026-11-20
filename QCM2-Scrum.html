@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QCM Scrum</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --text: #1f2328;
+    --muted: #5d636b;
+    --border: #d9d6cf;
+    --accent: #2f5d8a;
+    --accent-soft: #e6eef6;
+    --ok: #1f7a45;
+    --ok-soft: #e3f3e8;
+    --ko: #b42f2f;
+    --ko-soft: #f8e6e4;
+    --warn: #8a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181b;
+      --surface: #1f2226;
+      --text: #e7e6e3;
+      --muted: #a1a6ad;
+      --border: #363a40;
+      --accent: #7fb0e0;
+      --accent-soft: #233243;
+      --ok: #6fcf97;
+      --ok-soft: #1d3326;
+      --ko: #f08a80;
+      --ko-soft: #3a2222;
+      --warn: #e5b45a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181b;
+    --surface: #1f2226;
+    --text: #e7e6e3;
+    --muted: #a1a6ad;
+    --border: #363a40;
+    --accent: #7fb0e0;
+    --accent-soft: #233243;
+    --ok: #6fcf97;
+    --ok-soft: #1d3326;
+    --ko: #f08a80;
+    --ko-soft: #3a2222;
+    --warn: #e5b45a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; line-height: 1.25; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .question {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 14px;
+    margin: 0 0 14px;
+    min-width: 0;
+  }
+  .question.ok { border-color: var(--ok); }
+  .question.ko { border-color: var(--ko); }
+  .q-title { font-weight: 600; margin: 0 0 12px; display: flex; gap: 10px; }
+  .q-num {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .9rem;
+  }
+  .question.ok .q-num { background: var(--ok-soft); color: var(--ok); }
+  .question.ko .q-num { background: var(--ko-soft); color: var(--ko); }
+  .options { display: grid; gap: 6px; }
+  .option {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .option:hover { background: var(--accent-soft); }
+  .option input { margin: 4px 0 0; accent-color: var(--accent); flex: none; }
+  .option .letter { font-weight: 600; color: var(--muted); flex: none; }
+  .option.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .done .option { cursor: default; }
+  .done .option:hover { background: transparent; }
+  .option.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .option.wrong { border-color: var(--ko); background: var(--ko-soft); }
+  .tag { margin-left: auto; font-size: .8rem; font-weight: 600; white-space: nowrap; padding-left: 8px; }
+  .correct .tag { color: var(--ok); }
+  .wrong .tag { color: var(--ko); }
+  .explain {
+    display: none; margin-top: 12px; padding: 10px 12px;
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    border-radius: 0 6px 6px 0; font-size: .95rem;
+  }
+  .done .explain { display: block; }
+  .unanswered { color: var(--warn); font-size: .9rem; margin-top: 10px; display: none; }
+  .done .question.missing .unanswered { display: block; }
+  .bar {
+    position: sticky; bottom: 0; margin-top: 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .progress { color: var(--muted); font-size: .95rem; margin-right: auto; }
+  button {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 18px; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--surface);
+  }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:focus-visible, .option:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hidden { display: none !important; }
+  .result {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; margin-bottom: 20px;
+  }
+  .score { font-size: 2.2rem; font-weight: 700; line-height: 1; margin: 0 0 6px; font-variant-numeric: tabular-nums; }
+  .verdict { margin: 0; }
+  .meter { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin: 12px 0 0; }
+  .meter > span { display: block; height: 100%; background: var(--accent); }
+  .confirm { color: var(--warn); font-size: .9rem; width: 100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>QCM de l'après-midi : Scrum et articulation</h1>
+  <p class="lead">12 questions, 15 minutes. Une seule bonne réponse par question.</p>
+
+  <section id="result" class="result hidden" aria-live="polite">
+    <p class="score" id="score"></p>
+    <p class="verdict" id="verdict"></p>
+    <div class="meter"><span id="meter"></span></div>
+  </section>
+
+  <form id="quiz"></form>
+
+  <div class="bar">
+    <span class="progress" id="progress"></span>
+    <span class="confirm hidden" id="confirm"></span>
+    <button type="button" id="submit">Valider mes réponses</button>
+    <button type="button" id="reset" class="secondary hidden">Recommencer</button>
+  </div>
+</main>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Quelle est la durée maximale d'un sprint ?",
+    o: ["Une semaine", "Deux semaines", "Un mois", "Trois mois"],
+    a: 2,
+    e: "Un mois au plus. Beaucoup d'équipes choisissent deux semaines, mais ce n'est pas une règle du Scrum Guide."
+  },
+  {
+    q: "Combien de temps dure le Daily Scrum ?",
+    o: ["5 minutes", "15 minutes", "30 minutes", "1 heure"],
+    a: 1,
+    e: "15 minutes, chaque jour, pour les Developers."
+  },
+  {
+    q: "Qui est responsable de l'ordre des éléments du Product Backlog ?",
+    o: ["Le Scrum Master", "Les Developers, par vote", "Le Product Owner", "Le chef de projet"],
+    a: 2,
+    e: "Le Product Owner ordonne le Product Backlog. Il peut déléguer le travail, mais il en reste responsable."
+  },
+  {
+    q: "Lequel de ces éléments est un artefact Scrum ?",
+    o: ["Le Sprint Planning", "L'incrément", "La Sprint Review", "Le Daily Scrum"],
+    a: 1,
+    e: "Les trois artefacts : Product Backlog, Sprint Backlog, incrément. A, C et D sont des événements."
+  },
+  {
+    q: "À chaque artefact Scrum correspond un engagement. Quel est celui de l'incrément ?",
+    o: ["L'objectif de produit", "L'objectif de sprint", "La Definition of Done", "Le plan de release"],
+    a: 2,
+    e: "Product Backlog → objectif de produit ; Sprint Backlog → objectif de sprint ; incrément → Definition of Done."
+  },
+  {
+    q: "Quelle est la différence entre la Sprint Review et la Sprint Retrospective ?",
+    o: ["La Review inspecte le produit, la Retrospective inspecte la façon de travailler.",
+        "La Review a lieu au début du sprint, la Retrospective à la fin.",
+        "La Review est réservée à l'équipe, la Retrospective est ouverte aux parties prenantes.",
+        "Il n'y en a pas : ce sont deux noms du même événement."],
+    a: 0,
+    e: "Review : l'équipe et les parties prenantes inspectent l'incrément. Retrospective : l'équipe inspecte sa façon de travailler. Les deux ont lieu en fin de sprint."
+  },
+  {
+    q: "Lequel de ces termes est décrit dans le Scrum Guide ?",
+    o: ["User story", "Story points", "Objectif de sprint", "Planning poker"],
+    a: 2,
+    e: "User stories, story points et planning poker sont des pratiques que les équipes ajoutent ; le Scrum Guide n'en parle pas."
+  },
+  {
+    q: "Le Product Owner peut-il être un comité de trois personnes ?",
+    o: ["Oui, si le produit est important.",
+        "Oui, à condition que le Scrum Master le valide.",
+        "Non : le Product Owner est une seule personne.",
+        "Non : le Product Owner n'existe que dans les grandes équipes."],
+    a: 2,
+    e: "Le Product Owner est une seule personne. Il peut représenter les besoins de nombreuses parties prenantes."
+  },
+  {
+    q: "Dans la combinaison PRINCE2 et Scrum vue en cours, comment s'articulent séquence et sprint ?",
+    o: ["Un sprint contient plusieurs séquences.",
+        "Une séquence contient plusieurs sprints.",
+        "Séquence et sprint sont deux noms de la même chose.",
+        "Les sprints remplacent les séquences."],
+    a: 1,
+    e: "La séquence est l'unité de décision de la direction ; le sprint est l'unité de travail de l'équipe (diapositive 20)."
+  },
+  {
+    q: "Dans cette combinaison, qui décide de continuer ou d'arrêter le projet à la fin d'une séquence ?",
+    o: ["Le Product Owner", "Le Scrum Master", "L'équipe, en Sprint Retrospective", "Le comité de pilotage"],
+    a: 3,
+    e: "Le comité de pilotage décide entre deux séquences ; l'équipe décide dans le sprint."
+  },
+  {
+    q: "Dans un sprint, le délai et le coût sont fixes. Sur quoi porte alors la marge de manœuvre de l'équipe ?",
+    o: ["Sur la qualité : on peut livrer moins bien testé.",
+        "Sur le périmètre : on peut livrer moins de fonctionnalités.",
+        "Sur la durée du sprint : on peut le prolonger.",
+        "Il n'y a aucune marge de manœuvre."],
+    a: 1,
+    e: "Délai et coût fixés, la marge se prend sur le périmètre : c'est une tolérance de périmètre côté PRINCE2. On ne transige jamais sur la Definition of Done (A est faux)."
+  },
+  {
+    q: "Dans le cas Eval'Expert, un développeur annonce qu'une règle de la compagnie Alpha prendra deux jours de plus que prévu, sans effet sur la fin de la séquence. Où ce point se règle-t-il ?",
+    o: ["Au comité de pilotage, par un rapport d'exception",
+        "Dans l'équipe, au Daily Scrum",
+        "Au comité de direction d'Eval'Expert",
+        "Lors de la clôture du projet"],
+    a: 1,
+    e: "L'écart reste dans la tolérance du lot de travaux : il se règle dans l'équipe, il ne remonte pas (atelier 4, événement A)."
+  }
+];
+
+const LETTERS = ["A", "B", "C", "D"];
+const form = document.getElementById("quiz");
+const progress = document.getElementById("progress");
+const submitBtn = document.getElementById("submit");
+const resetBtn = document.getElementById("reset");
+const confirmMsg = document.getElementById("confirm");
+const resultBox = document.getElementById("result");
+let confirmPending = false;
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function render() {
+  form.innerHTML = QUESTIONS.map((item, i) => `
+    <fieldset class="question" id="q${i}" style="margin-inline:0">
+      <legend class="hidden">Question ${i + 1}</legend>
+      <p class="q-title"><span class="q-num">${i + 1}</span><span>${esc(item.q)}</span></p>
+      <div class="options">
+        ${item.o.map((opt, j) => `
+          <label class="option" data-q="${i}" data-o="${j}">
+            <input type="radio" name="q${i}" value="${j}">
+            <span class="letter">${LETTERS[j]}.</span>
+            <span>${esc(opt)}</span>
+            <span class="tag"></span>
+          </label>`).join("")}
+      </div>
+      <p class="unanswered">Pas de réponse.</p>
+      <div class="explain"><strong>Réponse ${LETTERS[item.a]}.</strong> ${esc(item.e)}</div>
+    </fieldset>`).join("");
+  updateProgress();
+}
+
+function answers() {
+  return QUESTIONS.map((_, i) => {
+    const c = form.querySelector(`input[name="q${i}"]:checked`);
+    return c ? Number(c.value) : null;
+  });
+}
+
+function updateProgress() {
+  const n = answers().filter(a => a !== null).length;
+  progress.textContent = `${n} / ${QUESTIONS.length} réponses`;
+  form.querySelectorAll(".option").forEach(l => {
+    l.classList.toggle("selected", l.querySelector("input").checked);
+  });
+}
+
+form.addEventListener("change", () => {
+  updateProgress();
+  confirmPending = false;
+  confirmMsg.classList.add("hidden");
+  submitBtn.textContent = "Valider mes réponses";
+});
+
+submitBtn.addEventListener("click", () => {
+  const ans = answers();
+  const missing = ans.filter(a => a === null).length;
+  if (missing && !confirmPending) {
+    confirmPending = true;
+    confirmMsg.textContent = `${missing} question${missing > 1 ? "s" : ""} sans réponse. Cliquez à nouveau pour valider quand même.`;
+    confirmMsg.classList.remove("hidden");
+    submitBtn.textContent = "Valider quand même";
+    return;
+  }
+  grade(ans);
+});
+
+function grade(ans) {
+  let score = 0;
+  QUESTIONS.forEach((item, i) => {
+    const box = document.getElementById(`q${i}`);
+    const ok = ans[i] === item.a;
+    if (ok) score++;
+    box.classList.add(ok ? "ok" : "ko");
+    if (ans[i] === null) box.classList.add("missing");
+    box.querySelectorAll(".option").forEach(l => {
+      const j = Number(l.dataset.o);
+      const input = l.querySelector("input");
+      input.disabled = true;
+      l.classList.remove("selected");
+      if (j === item.a) {
+        l.classList.add("correct");
+        l.querySelector(".tag").textContent = "Bonne réponse";
+      } else if (j === ans[i]) {
+        l.classList.add("wrong");
+        l.querySelector(".tag").textContent = "Votre réponse";
+      }
+    });
+  });
+  form.classList.add("done");
+
+  const total = QUESTIONS.length;
+  document.getElementById("score").textContent = `${score} / ${total}`;
+  let verdict;
+  if (score >= 10) verdict = "Notions acquises.";
+  else if (score >= 6) verdict = "À revoir sur les artefacts et l'articulation.";
+  else verdict = "Reprendre les diapositives 17 à 21.";
+  document.getElementById("verdict").textContent = verdict;
+  document.getElementById("meter").style.width = `${(score / total) * 100}%`;
+  resultBox.classList.remove("hidden");
+
+  submitBtn.classList.add("hidden");
+  confirmMsg.classList.add("hidden");
+  resetBtn.classList.remove("hidden");
+  progress.textContent = `Score : ${score} / ${total}`;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+resetBtn.addEventListener("click", () => {
+  confirmPending = false;
+  form.classList.remove("done");
+  resultBox.classList.add("hidden");
+  submitBtn.classList.remove("hidden");
+  submitBtn.textContent = "Valider mes réponses";
+  resetBtn.classList.add("hidden");
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+render();
+</script>
+</body>
+</html>
