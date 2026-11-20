@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QCM PRINCE2</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --text: #1f2328;
+    --muted: #5d636b;
+    --border: #d9d6cf;
+    --accent: #2f5d8a;
+    --accent-soft: #e6eef6;
+    --ok: #1f7a45;
+    --ok-soft: #e3f3e8;
+    --ko: #b42f2f;
+    --ko-soft: #f8e6e4;
+    --warn: #8a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181b;
+      --surface: #1f2226;
+      --text: #e7e6e3;
+      --muted: #a1a6ad;
+      --border: #363a40;
+      --accent: #7fb0e0;
+      --accent-soft: #233243;
+      --ok: #6fcf97;
+      --ok-soft: #1d3326;
+      --ko: #f08a80;
+      --ko-soft: #3a2222;
+      --warn: #e5b45a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181b;
+    --surface: #1f2226;
+    --text: #e7e6e3;
+    --muted: #a1a6ad;
+    --border: #363a40;
+    --accent: #7fb0e0;
+    --accent-soft: #233243;
+    --ok: #6fcf97;
+    --ok-soft: #1d3326;
+    --ko: #f08a80;
+    --ko-soft: #3a2222;
+    --warn: #e5b45a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; line-height: 1.25; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .question {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 14px;
+    margin: 0 0 14px;
+    min-width: 0;
+  }
+  .question.ok { border-color: var(--ok); }
+  .question.ko { border-color: var(--ko); }
+  .q-title { font-weight: 600; margin: 0 0 12px; display: flex; gap: 10px; }
+  .q-num {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .9rem;
+  }
+  .question.ok .q-num { background: var(--ok-soft); color: var(--ok); }
+  .question.ko .q-num { background: var(--ko-soft); color: var(--ko); }
+  .options { display: grid; gap: 6px; }
+  .option {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: background .12s, border-color .12s;
+  }
+  .option:hover { background: var(--accent-soft); }
+  .option input { margin: 4px 0 0; accent-color: var(--accent); flex: none; }
+  .option .letter { font-weight: 600; color: var(--muted); flex: none; }
+  .option.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .done .option { cursor: default; }
+  .done .option:hover { background: transparent; }
+  .option.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .option.wrong { border-color: var(--ko); background: var(--ko-soft); }
+  .tag { margin-left: auto; font-size: .8rem; font-weight: 600; white-space: nowrap; padding-left: 8px; }
+  .correct .tag { color: var(--ok); }
+  .wrong .tag { color: var(--ko); }
+  .explain {
+    display: none; margin-top: 12px; padding: 10px 12px;
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    border-radius: 0 6px 6px 0; font-size: .95rem;
+  }
+  .done .explain { display: block; }
+  .unanswered { color: var(--warn); font-size: .9rem; margin-top: 10px; display: none; }
+  .done .question.missing .unanswered { display: block; }
+  .bar {
+    position: sticky; bottom: 0; margin-top: 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .progress { color: var(--muted); font-size: .95rem; margin-right: auto; }
+  button {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 18px; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--surface);
+  }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:focus-visible, .option:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hidden { display: none !important; }
+  .result {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; margin-bottom: 20px;
+  }
+  .score { font-size: 2.2rem; font-weight: 700; line-height: 1; margin: 0 0 6px; font-variant-numeric: tabular-nums; }
+  .verdict { margin: 0; }
+  .meter { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin: 12px 0 0; }
+  .meter > span { display: block; height: 100%; background: var(--accent); }
+  .confirm { color: var(--warn); font-size: .9rem; width: 100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>QCM du matin : PRINCE2</h1>
+  <p class="lead">10 questions, 10 minutes. Une seule bonne réponse par question.</p>
+
+  <section id="result" class="result hidden" aria-live="polite">
+    <p class="score" id="score"></p>
+    <p class="verdict" id="verdict"></p>
+    <div class="meter"><span id="meter"></span></div>
+  </section>
+
+  <form id="quiz"></form>
+
+  <div class="bar">
+    <span class="progress" id="progress"></span>
+    <span class="confirm hidden" id="confirm"></span>
+    <button type="button" id="submit">Valider mes réponses</button>
+    <button type="button" id="reset" class="secondary hidden">Recommencer</button>
+  </div>
+</main>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Quel élément est placé au centre des cinq éléments intégrés de PRINCE2 7 ?",
+    o: ["Les principes", "Les personnes", "Les processus", "Le contexte du projet"],
+    a: 1,
+    e: "Nouveauté de PRINCE2 7 : les personnes sont au centre, reliées aux principes, aux pratiques, aux processus et au contexte (diapositive 5)."
+  },
+  {
+    q: "Qu'est-ce qui distingue un projet des opérations courantes ?",
+    o: ["Il est récurrent et suit une procédure établie.",
+        "Il est mené par une seule équipe, sans parties prenantes externes.",
+        "Il est temporaire et introduit un changement.",
+        "Il n'a pas besoin de justification une fois lancé."],
+    a: 2,
+    e: "Un projet est temporaire, unique, et introduit un changement. A décrit une opération courante."
+  },
+  {
+    q: "Au comité de pilotage, qui représente l'intérêt de l'entreprise et a le dernier mot ?",
+    o: ["Le chef de projet", "L'utilisateur principal", "Le fournisseur principal", "L'exécutif"],
+    a: 3,
+    e: "L'exécutif porte le cas d'affaire et tranche. L'utilisateur principal et le fournisseur principal le conseillent (diapositive 7)."
+  },
+  {
+    q: "Dans le cas Eval'Expert, pourquoi Inès Morel, la cheffe de projet, ne peut-elle pas assurer aussi l'assurance projet ?",
+    o: ["Parce qu'elle appartient à la DSI et non aux opérations.",
+        "Parce que l'assurance projet doit porter un regard indépendant du chef de projet.",
+        "Parce que l'assurance projet est toujours confiée à un prestataire externe.",
+        "Parce que PRINCE2 interdit à une personne de tenir plusieurs rôles."],
+    a: 1,
+    e: "L'assurance projet contrôle pour le compte du comité, indépendamment du chef de projet. Le cumul de rôles est permis (D est faux), sauf ceux qui créent un conflit d'intérêt."
+  },
+  {
+    q: "Lequel de ces énoncés est un principe PRINCE2 ?",
+    o: ["Management par séquences", "Gestion des risques", "Diriger le projet", "Plan de projet"],
+    a: 0,
+    e: "B est une pratique (les risques), C un processus, D un produit de management."
+  },
+  {
+    q: "Une petite entreprise lance un projet de deux mois. Elle fusionne les registres dans un seul classeur et confie à la même personne les rôles de chef de projet et de chef d'équipe. Que fait-elle ?",
+    o: ["Elle sort de PRINCE2, car tous les documents sont obligatoires.",
+        "Elle applique le principe « adapter en fonction du projet ».",
+        "Elle applique le management par exception.",
+        "Elle supprime la séquence d'initialisation."],
+    a: 1,
+    e: "Adapter, ce n'est pas supprimer : les sept principes restent appliqués, les documents et les rôles s'ajustent (diapositive 9)."
+  },
+  {
+    q: "Quelle pratique répond à la question « Pourquoi fait-on ce projet ? »",
+    o: ["Organisation", "Plans", "Cas d'affaire", "Progression"],
+    a: 2,
+    e: "Le cas d'affaire établit si le projet est et reste souhaitable, viable et réalisable (diapositive 11)."
+  },
+  {
+    q: "Quelle est la différence entre un risque et une incidence ?",
+    o: ["Un risque est toujours négatif, une incidence toujours positive.",
+        "Un risque est encore incertain, une incidence est déjà survenue.",
+        "Un risque concerne le coût, une incidence concerne le délai.",
+        "Un risque est géré par l'équipe, une incidence par le comité de pilotage."],
+    a: 1,
+    e: "Un risque est incertain, il peut être une menace ou une opportunité (A est faux). Une incidence est déjà survenue (diapositive 11)."
+  },
+  {
+    q: "Combien de séquences de management un projet PRINCE2 compte-t-il au minimum ?",
+    o: ["Une seule, la séquence de livraison",
+        "Deux : la séquence d'initialisation et au moins une autre",
+        "Trois : initialisation, livraison, clôture",
+        "Autant que de processus, soit sept"],
+    a: 1,
+    e: "Au moins deux séquences : l'initialisation, puis au moins une séquence de livraison."
+  },
+  {
+    q: "En semaine 3 de la séquence S2, la cheffe de projet prévoit que la séquence finira avec quatre semaines de retard, alors que la tolérance de délai accordée est de deux semaines. Que doit-elle faire ?",
+    o: ["Attendre la fin de la séquence pour constater le dépassement.",
+        "Demander à l'équipe de faire des heures supplémentaires sans en parler.",
+        "Alerter le comité de pilotage par un rapport d'exception, dès maintenant.",
+        "Modifier elle-même la tolérance de la séquence."],
+    a: 2,
+    e: "On escalade sur une prévision de dépassement, sans attendre le dépassement constaté. Seul le comité peut modifier les tolérances de la séquence (atelier 4, événement B)."
+  }
+];
+
+const LETTERS = ["A", "B", "C", "D"];
+const form = document.getElementById("quiz");
+const progress = document.getElementById("progress");
+const submitBtn = document.getElementById("submit");
+const resetBtn = document.getElementById("reset");
+const confirmMsg = document.getElementById("confirm");
+const resultBox = document.getElementById("result");
+let confirmPending = false;
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function render() {
+  form.innerHTML = QUESTIONS.map((item, i) => `
+    <fieldset class="question" id="q${i}" style="margin-inline:0">
+      <legend class="hidden">Question ${i + 1}</legend>
+      <p class="q-title"><span class="q-num">${i + 1}</span><span>${esc(item.q)}</span></p>
+      <div class="options">
+        ${item.o.map((opt, j) => `
+          <label class="option" data-q="${i}" data-o="${j}">
+            <input type="radio" name="q${i}" value="${j}">
+            <span class="letter">${LETTERS[j]}.</span>
+            <span>${esc(opt)}</span>
+            <span class="tag"></span>
+          </label>`).join("")}
+      </div>
+      <p class="unanswered">Pas de réponse.</p>
+      <div class="explain"><strong>Réponse ${LETTERS[item.a]}.</strong> ${esc(item.e)}</div>
+    </fieldset>`).join("");
+  updateProgress();
+}
+
+function answers() {
+  return QUESTIONS.map((_, i) => {
+    const c = form.querySelector(`input[name="q${i}"]:checked`);
+    return c ? Number(c.value) : null;
+  });
+}
+
+function updateProgress() {
+  const n = answers().filter(a => a !== null).length;
+  progress.textContent = `${n} / ${QUESTIONS.length} réponses`;
+  form.querySelectorAll(".option").forEach(l => {
+    l.classList.toggle("selected", l.querySelector("input").checked);
+  });
+}
+
+form.addEventListener("change", () => {
+  updateProgress();
+  confirmPending = false;
+  confirmMsg.classList.add("hidden");
+  submitBtn.textContent = "Valider mes réponses";
+});
+
+submitBtn.addEventListener("click", () => {
+  const ans = answers();
+  const missing = ans.filter(a => a === null).length;
+  if (missing && !confirmPending) {
+    confirmPending = true;
+    confirmMsg.textContent = `${missing} question${missing > 1 ? "s" : ""} sans réponse. Cliquez à nouveau pour valider quand même.`;
+    confirmMsg.classList.remove("hidden");
+    submitBtn.textContent = "Valider quand même";
+    return;
+  }
+  grade(ans);
+});
+
+function grade(ans) {
+  let score = 0;
+  QUESTIONS.forEach((item, i) => {
+    const box = document.getElementById(`q${i}`);
+    const ok = ans[i] === item.a;
+    if (ok) score++;
+    box.classList.add(ok ? "ok" : "ko");
+    if (ans[i] === null) box.classList.add("missing");
+    box.querySelectorAll(".option").forEach(l => {
+      const j = Number(l.dataset.o);
+      const input = l.querySelector("input");
+      input.disabled = true;
+      l.classList.remove("selected");
+      if (j === item.a) {
+        l.classList.add("correct");
+        l.querySelector(".tag").textContent = "Bonne réponse";
+      } else if (j === ans[i]) {
+        l.classList.add("wrong");
+        l.querySelector(".tag").textContent = "Votre réponse";
+      }
+    });
+  });
+  form.classList.add("done");
+
+  const total = QUESTIONS.length;
+  document.getElementById("score").textContent = `${score} / ${total}`;
+  let verdict;
+  if (score >= 8) verdict = "Notions acquises.";
+  else if (score >= 5) verdict = "À revoir sur les rôles et les tolérances.";
+  else verdict = "Reprendre les diapositives 5 à 15.";
+  document.getElementById("verdict").textContent = verdict;
+  document.getElementById("meter").style.width = `${(score / total) * 100}%`;
+  resultBox.classList.remove("hidden");
+
+  submitBtn.classList.add("hidden");
+  confirmMsg.classList.add("hidden");
+  resetBtn.classList.remove("hidden");
+  progress.textContent = `Score : ${score} / ${total}`;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+resetBtn.addEventListener("click", () => {
+  confirmPending = false;
+  form.classList.remove("done");
+  resultBox.classList.add("hidden");
+  submitBtn.classList.remove("hidden");
+  submitBtn.textContent = "Valider mes réponses";
+  resetBtn.classList.add("hidden");
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+render();
+</script>
+</body>
+</html>
